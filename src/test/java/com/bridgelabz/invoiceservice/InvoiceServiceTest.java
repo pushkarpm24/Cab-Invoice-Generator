@@ -5,53 +5,45 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class InvoiceServiceTest {
-    InvoiceService invoiceService = null;
+    Ride[] rides=null;
+    InvoiceService invoiceService=null;
+    InvoiceSummary expectedInvoiceSummary = null;
+    private RideRepository rideRepository = null;
+
     @Before
     public void setUp() throws Exception {
         invoiceService = new InvoiceService();
+        rideRepository = new RideRepository();
+        invoiceService.setRideRepository(rideRepository);
+        rides = new Ride[]{
+                new Ride(CabSubscriptions.NORMAL, 2.0, 5),
+                new Ride(CabSubscriptions.PREMIUM, 0.1, 1)
+        };
+        expectedInvoiceSummary = new InvoiceSummary(2, 45.0);
     }
-
 
     @Test
     public void givenDistanceAndTime_shouldReturnTotalFare() {
-
-        double distence = 2.0;
-        int time = 5;
-        double fare = invoiceService.calculateFare(distence, time, Ride.RideType.NORMAL);
-        Assert.assertEquals(25, fare, 0.0);
+        double fare = invoiceService.calculateFareForNormalAndPrime(rides);
+        Assert.assertEquals(45, fare, 0.0);
 
     }
 
     @Test
-    public void givenLessDistanceOrTime_shouldReturnMinFare() {
-
-        double distance = 0.1;
-        int time = 1;
-        double fare = invoiceService.calculateFare(distance, time, Ride.RideType.NORMAL);
-        Assert.assertEquals(5,fare,0.0);
-
-    }
-
-    @Test
-    public void givenMultipleRides_shouldReturnTotalFare() {
-
-        Ride[] rides = {
-                new Ride(2.0,5, Ride.RideType.NORMAL),
-                new Ride(0.1,1, Ride.RideType.NORMAL)
-        };
+    public void givenMultipleRides_ShouldReturnInvoiceSummary() {
         InvoiceSummary summary = invoiceService.calculateFare(rides);
-        InvoiceSummary expectedInvoiceSummary = new InvoiceSummary(2,30.0);
-        Assert.assertEquals(expectedInvoiceSummary,summary);
+        Assert.assertEquals(expectedInvoiceSummary, summary);
     }
+
     @Test
     public void givenUserIdAndRides_shouldReturnInvoiceSummary() {
 
         String userId = "asd";
-        Ride[] rides = { new Ride(2.0, 5, Ride.RideType.PREMIUM),
-                new Ride(0.1, 1, Ride.RideType.PREMIUM)};
+        Ride[] rides = { new Ride(CabSubscriptions.NORMAL,2.0, 5 ),
+                new Ride(CabSubscriptions.PREMIUM,0.1, 1 )};
         invoiceService.addRides(userId, rides);
         InvoiceSummary summary = invoiceService.getInvoiceSummary(userId);
-        InvoiceSummary expectedInvoiceSummary = new InvoiceSummary(2,60.0);
+        InvoiceSummary expectedInvoiceSummary = new InvoiceSummary(2,45.0);
         Assert.assertEquals(expectedInvoiceSummary,summary);
     }
 }
